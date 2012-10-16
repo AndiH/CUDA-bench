@@ -27,6 +27,7 @@
 #include "TGraph.h"
 #include "TMultiGraph.h"
 #include "TLegend.h"
+#include "TMath.h"
 
 namespace my {
 	template <class ForwardIterator>
@@ -57,6 +58,7 @@ int main(int argc, char** argv) {
 	int nOfRepetition = 100; // How many times should each data vector be calculated - a mean is taken from those nOfReptition values
 	
 	std::vector<thrust::tuple<int, double, double, double> > allTheTimes; // nOfNumbers, cpu, gpu_Transfer, gpu_Compute
+	std::vector<thrust::tuple<int, double, double, double> > allTheErrors;
 	
 	for (int nOfNumbers = 10; nOfNumbers <= upperBorder; nOfNumbers = nOfNumbers*incrementNOfNumbersBy) {
 		std::vector<double> preAverageTime_cpu;
@@ -119,9 +121,12 @@ int main(int argc, char** argv) {
 		cudaEventDestroy(intermediate);
 		cudaEventDestroy(stop);
 		
-		double meanCpu = std::accumulate(preAverageTime_cpu.begin(), preAverageTime_cpu.end(), 0.0) / preAverageTime_cpu.size();
-		double meanGpuCopy = std::accumulate(preAverageTime_gpuCopy.begin(), preAverageTime_gpuCopy.end(), 0.0) / preAverageTime_gpuCopy.size();
-		double meanGpuCompute = std::accumulate(preAverageTime_gpuCompute.begin(), preAverageTime_gpuCompute.end(), 0.0) / preAverageTime_gpuCompute.size();
+		double meanCpu = TMath::Mean(preAverageTime_cpu.size(), &preAverageTime_cpu[0]); // the constructor of Mean using iterators "Mean(bla.begin(), bla.end())" doesn't seem to work
+		// double meanCpu2 = std::accumulate(preAverageTime_cpu.begin(), preAverageTime_cpu.end(), 0.0) / preAverageTime_cpu.size(); // Old version
+		double meanGpuCopy = TMath::Mean(preAverageTime_gpuCopy.size(), &preAverageTime_gpuCopy[0]);
+		// double meanGpuCopy = std::accumulate(preAverageTime_gpuCopy.begin(), preAverageTime_gpuCopy.end(), 0.0) / preAverageTime_gpuCopy.size(); // Old version
+		double meanGpuCompute = TMath::Mean(preAverageTime_gpuCompute.size(), &preAverageTime_gpuCompute[0]);
+		// double meanGpuCompute = std::accumulate(preAverageTime_gpuCompute.begin(), preAverageTime_gpuCompute.end(), 0.0) / preAverageTime_gpuCompute.size(); // old version
 		
 		allTheTimes.push_back(thrust::make_tuple(nOfNumbers, meanCpu + yOffset, yOffset + meanGpuCopy/1000, yOffset + meanGpuCompute/1000));
 		
