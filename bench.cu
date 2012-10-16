@@ -24,7 +24,7 @@
 #include "TApplication.h"
 #include "TCanvas.h"
 #include "TStopwatch.h"
-#include "TGraph.h"
+#include "TGraphErrors.h"
 #include "TMultiGraph.h"
 #include "TLegend.h"
 #include "TMath.h"
@@ -122,24 +122,25 @@ int main(int argc, char** argv) {
 		cudaEventDestroy(stop);
 		
 		double meanCpu = TMath::Mean(preAverageTime_cpu.size(), &preAverageTime_cpu[0]); // the constructor of Mean using iterators "Mean(bla.begin(), bla.end())" doesn't seem to work
-		// double meanCpu2 = std::accumulate(preAverageTime_cpu.begin(), preAverageTime_cpu.end(), 0.0) / preAverageTime_cpu.size(); // Old version
 		double meanGpuCopy = TMath::Mean(preAverageTime_gpuCopy.size(), &preAverageTime_gpuCopy[0]);
-		// double meanGpuCopy = std::accumulate(preAverageTime_gpuCopy.begin(), preAverageTime_gpuCopy.end(), 0.0) / preAverageTime_gpuCopy.size(); // Old version
 		double meanGpuCompute = TMath::Mean(preAverageTime_gpuCompute.size(), &preAverageTime_gpuCompute[0]);
-		// double meanGpuCompute = std::accumulate(preAverageTime_gpuCompute.begin(), preAverageTime_gpuCompute.end(), 0.0) / preAverageTime_gpuCompute.size(); // old version
+		double rmsCpu = TMath::RMS(preAverageTime_cpu.size(), &preAverageTime_cpu[0]);
+		double rmsGpuCopy = TMath::RMS(preAverageTime_gpuCopy.size(), &preAverageTime_gpuCopy[0]);
+		double rmsGpuCompute = TMath::RMS(preAverageTime_gpuCompute.size(), &preAverageTime_gpuCompute[0]);
 		
 		allTheTimes.push_back(thrust::make_tuple(nOfNumbers, meanCpu + yOffset, yOffset + meanGpuCopy/1000, yOffset + meanGpuCompute/1000));
+		allTheErrors.push_back(thrust::make_tuple(nOfNumbers, rmsCpu + yOffset, yOffset + rmsGpuCopy/1000, yOffset + rmsGpuCompute/1000));
 		
 		
-// 		std::cout << "Mean Time for " << nOfNumbers << " random numbers * " << nOfRepetition << std::endl;
-// 		std::cout << "  CPU = " << meanCpu << "s" << std::endl;
-// 		std::cout << "  GPU (Copy To) = " << meanGpuCopy/1000 << "s" << std::endl;
-// 		std::cout << "  GPU (Compute on) = " << meanGpuCompute/1000 << "s" << std::endl;
+		std::cout << "Mean Time for " << nOfNumbers << " random numbers * " << nOfRepetition << std::endl;
+		std::cout << "  CPU = " << meanCpu << "+-" << rmsCpu << "s" << std::endl;
+		std::cout << "  GPU (Copy To) = " << meanGpuCopy/1000 << "+-" << rmsGpuCopy/1000 << "s" << std::endl;
+		std::cout << "  GPU (Compute on) = " << meanGpuCompute/1000 << "+-" << rmsGpuCompute/1000 << "s" << std::endl;
 	}
 	
-	TGraph * graphCpu = new TGraph();
-	TGraph * graphGpuCopy = new TGraph();
-	TGraph * graphGpuCompute = new TGraph();
+	TGraphErrors * graphCpu = new TGraphErrors();
+	TGraphErrors * graphGpuCopy = new TGraphErrors();
+	TGraphErrors * graphGpuCompute = new TGraphErrors();
 
 	for (int i = 0; i < allTheTimes.size(); i++) {
 		int nDataPoints = thrust::get<0>(allTheTimes[i]);
@@ -147,6 +148,9 @@ int main(int argc, char** argv) {
 		graphGpuCopy->SetPoint(i, nDataPoints, thrust::get<2>(allTheTimes[i]));
 		graphGpuCompute->SetPoint(i, nDataPoints, thrust::get<3>(allTheTimes[i]));
 
+		graphCpu->SetPointError(i, 0, thrust::get<1>(allTheErrors[i]));
+		graphGpuCopy->SetPointError(i, 0, thrust::get<2>(allTheErrors[i]));
+		graphGpuCompute->SetPointError(i, 0, thrust::get<3>(allTheErrors[i]));
 	}
 	
 // 	graphCpu->Print();
