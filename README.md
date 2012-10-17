@@ -35,7 +35,6 @@ For 2. and 3. I make use of `cudaEvent*` – more precise, of `cudaEventRecord`.
 ## To Do
 The following things are to be done, or probably already done because I forgot to update this README.
 
-* Make fits
 * Display different areas of the plot in different `TCanvas`ses
     * First area: 1 - 50.000 / 5.000 (point of interesection)
     * Second area: Full area, to see how great GPUs are
