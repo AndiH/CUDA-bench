@@ -207,7 +207,7 @@ int main(int argc, char** argv) {
 	mg.Add(graphGpuCompute);
 	
 	mg.Draw("AP");
-	mg.GetXaxis()->SetTitle("#Numbers/#");
+	mg.GetXaxis()->SetTitle("# Numbers/#");
 	mg.GetYaxis()->SetTitle("Time/s");
 	
 // 	gPad->SetLogy();
