@@ -3,6 +3,12 @@ Simple test to benchmark the performance of **CUDA Thrust** and a **CPU**.
 Reason: To show off some benefits of using a GPU at a presentation at our institute's meeting. Will probably share a link to my slides here later. Maybe.
 
 To display results, CERN's [ROOT](http://root.cern.ch) library is used. Change your path in the `Makefile`.
+## Call
+Running `./bench` is equal to a call to
+
+    ./bench 100000 2 100 0
+which should be a good enough visualisation of the great power of GPUs.
+Adding anything behind a plain `./bench` call will display the possible parameters.
 
 ## Strategy
 * A number (10) of random numbers are generated and filled into a `thrust::host_vector`
