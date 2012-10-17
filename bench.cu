@@ -187,7 +187,7 @@ int main(int argc, char** argv) {
 	mg.Add(graphGpuCompute);
 	
 	mg.Draw("APL");
-	mg.GetXaxis()->SetTitle("Computations/#");
+	mg.GetXaxis()->SetTitle("Random Numbers/#");
 	mg.GetYaxis()->SetTitle("Time/s");
 	
 // 	gPad->SetLogy();
