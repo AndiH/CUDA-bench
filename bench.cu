@@ -47,20 +47,40 @@ namespace my {
 			return x * x;
 		}
 	};
+	
+	int incrementWithDifferentOperator(const int baseValue, const int valueToIncrementBy, const bool plus)  {
+		if (true == plus) {
+			return baseValue + valueToIncrementBy;
+		} else {
+			return baseValue * valueToIncrementBy;
+		}
+	}
 }
 
 int main(int argc, char** argv) {
 	int upperBorder = 100000;
+	if (argc > 1) {
+		std::cout << "Command line parameter syntax:" << std::endl
+		<< "  " << argv[0] << " maxNumbers incrementBy nOfRepetition plusOrTimes" << std::endl
+		<< "    maxNumbers = (int) amount of points of data to which this program increments to (Default = 100000)" << std::endl
+		<< "    incrementBy = (int) for incrementing, the number of data points is multiplied by or added to (see below) this value (Default = 2)" << std::endl
+		<< "    nOfRepetition = (int) for statistics reason, the calculation on each data points is repeated according to this number (Default = 100)" << std::endl
+		<< "    plusOrTimes = (bool wrt plus) should incrementBy used on the current data point as multiplication or addition? 1 = plus, 0 = times (Default = times (0))" << std::endl;
+	}
 	if (argc > 1) upperBorder = atof(argv[1]);
 	
 	double yOffset = 0; // Needed for log plots -- set to one and uncomment setlogy below
 	int incrementNOfNumbersBy = 2; // Can also be changed to + in outer for loop
+	if (argc > 2) incrementNOfNumbersBy = atoi(argv[2]);
 	int nOfRepetition = 100; // How many times should each data vector be calculated - a mean is taken from those nOfReptition values
+	if (argc > 3) nOfRepetition = atoi(argv[3]);
+	bool operatorForIncrementation = false; // true = plus; false = times
+	if (argc > 4) operatorForIncrementation = (bool) atoi(argv[4]);
 	
 	std::vector<thrust::tuple<int, double, double, double> > allTheTimes; // nOfNumbers, cpu, gpu_Transfer, gpu_Compute
 	std::vector<thrust::tuple<int, double, double, double> > allTheErrors;
 	
-	for (int nOfNumbers = 10; nOfNumbers <= upperBorder; nOfNumbers = nOfNumbers*incrementNOfNumbersBy) {
+	for (int nOfNumbers = 10; nOfNumbers <= upperBorder; nOfNumbers = my::incrementWithDifferentOperator(nOfNumbers,incrementNOfNumbersBy,operatorForIncrementation)) {
 		std::vector<double> preAverageTime_cpu;
 		std::vector<double> preAverageTime_gpuCopy;
 		std::vector<double> preAverageTime_gpuCompute;
