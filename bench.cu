@@ -76,18 +76,6 @@ int main(int argc, char** argv) {
 	if (argc > 3) nOfRepetition = atoi(argv[3]);
 	bool operatorForIncrementation = false; // true = plus; false = times
 	if (argc > 4) operatorForIncrementation = (bool) atoi(argv[4]);
-
-	// Some output
-	std::cout << "Running with following parameters: " << std::endl
-	<< "    maxNumbers = " << upperBorder << std::endl
-	<< "    incrementBy = " << incrementNOfNumbersBy << " using ";
-	if (true == operatorForIncrementation) {
-		std::cout << "summation" << std::endl;
-	} else {
-		std::cout << "multiplication" << std::endl;
-	}
-	std::cout << "    nOfRepetition = " << nOfRepetition << std::endl;
-
 	
 	std::vector<thrust::tuple<int, double, double, double> > allTheTimes; // nOfNumbers, cpu, gpu_Transfer, gpu_Compute
 	std::vector<thrust::tuple<int, double, double, double> > allTheErrors;
@@ -218,15 +206,29 @@ int main(int argc, char** argv) {
 	mg.Add(graphGpuCopy);
 	mg.Add(graphGpuCompute);
 	
-	mg.Draw("APL");
-	mg.GetXaxis()->SetTitle("Random Numbers/#");
+	mg.Draw("AP");
+	mg.GetXaxis()->SetTitle("#Numbers/#");
 	mg.GetYaxis()->SetTitle("Time/s");
 	
 // 	gPad->SetLogy();
 	
 	TLegend * leg = c1->BuildLegend(0.1,0.75,0.42,0.9);
 	leg->SetFillColor(kWhite);
-	graphCpu->Fit("pol1","FQ");
+	bool doFit = true;
+	if (true == doFit) {
+		graphCpu->Fit("pol1","FQ");
+		graphCpu->GetFunction("pol1")->SetLineColor(graphCpu->GetLineColor());
+		graphCpu->GetFunction("pol1")->SetLineWidth(1);
+		graphGpuCompute->Fit("pol1", "FQ");
+		graphGpuCompute->GetFunction("pol1")->SetLineColor(graphGpuCompute->GetLineColor());
+		graphGpuCompute->GetFunction("pol1")->SetLineWidth(1);
+		graphGpuCopy->Fit("pol1", "FQ");
+		graphGpuCopy->GetFunction("pol1")->SetLineColor(graphGpuCopy->GetLineColor());
+		graphGpuCopy->GetFunction("pol1")->SetLineWidth(1);
+	}
+// 	fCpu->Draw("SAME");
+// 	fGpuCompute->Draw("SAME");
+// 	fGpuCopy->Draw("SAME");
 	c1->Update();
 	theApp->Run();
 
