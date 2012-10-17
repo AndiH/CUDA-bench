@@ -76,6 +76,18 @@ int main(int argc, char** argv) {
 	if (argc > 3) nOfRepetition = atoi(argv[3]);
 	bool operatorForIncrementation = false; // true = plus; false = times
 	if (argc > 4) operatorForIncrementation = (bool) atoi(argv[4]);
+
+	// Some output
+	std::cout << "Running with following parameters: " << std::endl
+	<< "    maxNumbers = " << upperBorder << std::endl
+	<< "    incrementBy = " << incrementNOfNumbersBy << " using ";
+	if (true == operatorForIncrementation) {
+		std::cout << "summation" << std::endl;
+	} else {
+		std::cout << "multiplication" << std::endl;
+	}
+	std::cout << "    nOfRepetition = " << nOfRepetition << std::endl;
+
 	
 	std::vector<thrust::tuple<int, double, double, double> > allTheTimes; // nOfNumbers, cpu, gpu_Transfer, gpu_Compute
 	std::vector<thrust::tuple<int, double, double, double> > allTheErrors;

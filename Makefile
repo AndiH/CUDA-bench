@@ -18,7 +18,7 @@ OBJECTS = bench.o
 all:    bench
 
 %.o:	%.cu
-	nvcc -arch=sm_20 $(ROOTCFLAGS) $(ROOTLIBS) -c $<
+	nvcc --debug -arch=sm_20 $(ROOTCFLAGS) $(ROOTLIBS) -c $<
 
 bench:  $(OBJECTS)
-	nvcc -arch=sm_20 $(ROOTCFLAGS) $(ROOTLIBS) -o  $@ $(OBJECTS)
+	nvcc --debug -arch=sm_20 $(ROOTCFLAGS) $(ROOTLIBS) -o  $@ $(OBJECTS)
