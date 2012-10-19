@@ -118,8 +118,8 @@ int main(int argc, char** argv) {
 			cudaEventRecord(stop, 0); // stop all counters
 			cudaEventSynchronize(stop); // wait for stop to finish
 			
-			cudaEventElapsedTime(&timeForCopy, start, intermediate); // time for copy
-			cudaEventElapsedTime(&timeForComputation, intermediate, stop); // time for computation
+			cudaEventElapsedTime(&timeForCopy, start, intermediate); // time for copy in milliseconds (see http://developer.download.nvidia.com/compute/cuda/4_2/rel/toolkit/docs/online/group__CUDART__EVENT_g14c387cc57ce2e328f6669854e6020a5.html) 
+			cudaEventElapsedTime(&timeForComputation, intermediate, stop); // time for computation in milliseconds
 			
 			
 			
@@ -144,7 +144,7 @@ int main(int argc, char** argv) {
 		double meanCpu = TMath::Mean(preAverageTime_cpu.size(), &preAverageTime_cpu[0]); // the constructor of Mean using iterators "Mean(bla.begin(), bla.end())" doesn't seem to work
 		double meanGpuCopy = TMath::Mean(preAverageTime_gpuCopy.size(), &preAverageTime_gpuCopy[0]);
 		double meanGpuCompute = TMath::Mean(preAverageTime_gpuCompute.size(), &preAverageTime_gpuCompute[0]);
-		double rmsCpu = TMath::RMS(preAverageTime_cpu.size(), &preAverageTime_cpu[0]);
+		double rmsCpu = TMath::RMS(preAverageTime_cpu.size(), &preAverageTime_cpu[0]); // Note: RMS() is not root mean square but the standard deviation
 		double rmsGpuCopy = TMath::RMS(preAverageTime_gpuCopy.size(), &preAverageTime_gpuCopy[0]);
 		double rmsGpuCompute = TMath::RMS(preAverageTime_gpuCompute.size(), &preAverageTime_gpuCompute[0]);
 		
@@ -161,16 +161,19 @@ int main(int argc, char** argv) {
 	TGraphErrors * graphCpu = new TGraphErrors();
 	TGraphErrors * graphGpuCopy = new TGraphErrors();
 	TGraphErrors * graphGpuCompute = new TGraphErrors();
+	TGraphErrors * graphGpuWhole = new TGraphErrors();
 
 	for (int i = 0; i < allTheTimes.size(); i++) {
 		int nDataPoints = thrust::get<0>(allTheTimes[i]);
 		graphCpu->SetPoint(i, nDataPoints, thrust::get<1>(allTheTimes[i]));
 		graphGpuCopy->SetPoint(i, nDataPoints, thrust::get<2>(allTheTimes[i]));
 		graphGpuCompute->SetPoint(i, nDataPoints, thrust::get<3>(allTheTimes[i]));
+		graphGpuWhole->SetPoint(i, nDataPoints, thrust::get<2>(allTheTimes[i]) + thrust::get<3>(allTheTimes[i]));
 
 		graphCpu->SetPointError(i, 0, thrust::get<1>(allTheErrors[i]));
 		graphGpuCopy->SetPointError(i, 0, thrust::get<2>(allTheErrors[i]));
 		graphGpuCompute->SetPointError(i, 0, thrust::get<3>(allTheErrors[i]));
+		graphGpuWhole->SetPointError(i, 0, thrust::get<2>(allTheErrors[i]) + thrust::get<3>(allTheErrors[i]));
 	}
 	
 // 	graphCpu->Print();
@@ -186,16 +189,22 @@ int main(int argc, char** argv) {
 	graphCpu->SetTitle("CPU");
 	graphGpuCopy->SetLineColor(kBlue);
 	graphGpuCopy->SetFillColor(graphGpuCopy->GetLineColor() - 10);
-	graphGpuCopy->SetTitle("GPU - Copy");
+	graphGpuCopy->SetTitle("GPU (copy)");
 	graphGpuCopy->SetMarkerStyle(kFullDotLarge);
 	graphGpuCopy->SetMarkerSize(dotSize);
 	graphGpuCopy->SetMarkerColor(graphGpuCopy->GetLineColor() + 2);
 	graphGpuCompute->SetLineColor(kGreen+2);
 	graphGpuCompute->SetFillColor(graphGpuCompute->GetLineColor() - 10);
-	graphGpuCompute->SetTitle("GPU - Compute");
+	graphGpuCompute->SetTitle("GPU (compute)");
 	graphGpuCompute->SetMarkerStyle(kFullDotLarge);
 	graphGpuCompute->SetMarkerSize(dotSize);
 	graphGpuCompute->SetMarkerColor(graphGpuCompute->GetLineColor() + 2);
+	graphGpuWhole->SetLineColor(kMagenta - 5);
+	graphGpuWhole->SetFillColor(graphGpuWhole->GetLineColor() - 5);
+	graphGpuWhole->SetTitle("GPU (whole)");
+	graphGpuWhole->SetMarkerStyle(kFullDotLarge);
+	graphGpuWhole->SetMarkerSize(dotSize);
+	graphGpuWhole->SetMarkerColor(graphGpuWhole->GetLineColor() +2);
 	
 	TApplication *theApp = new TApplication("app", &argc, argv, 0, -1);
 	TCanvas * c1 = new TCanvas("c1", "default", 100, 10, 800, 600);
@@ -205,6 +214,7 @@ int main(int argc, char** argv) {
 	mg.Add(graphCpu);
 	mg.Add(graphGpuCopy);
 	mg.Add(graphGpuCompute);
+	mg.Add(graphGpuWhole);
 	
 	mg.Draw("AP");
 	mg.GetXaxis()->SetTitle("# Numbers/#");
@@ -214,6 +224,7 @@ int main(int argc, char** argv) {
 	
 	TLegend * leg = c1->BuildLegend(0.1,0.75,0.42,0.9);
 	leg->SetFillColor(kWhite);
+
 	bool doFit = true;
 	if (true == doFit) {
 		graphCpu->Fit("pol1","FQ");
@@ -225,11 +236,17 @@ int main(int argc, char** argv) {
 		graphGpuCopy->Fit("pol1", "FQ");
 		graphGpuCopy->GetFunction("pol1")->SetLineColor(graphGpuCopy->GetLineColor());
 		graphGpuCopy->GetFunction("pol1")->SetLineWidth(1);
+		graphGpuWhole->Fit("pol1","FQ");
+		graphGpuWhole->GetFunction("pol1")->SetLineColor(graphGpuWhole->GetLineColor());
+		graphGpuWhole->GetFunction("pol1")->SetLineWidth(1);
 	}
 // 	fCpu->Draw("SAME");
 // 	fGpuCompute->Draw("SAME");
 // 	fGpuCopy->Draw("SAME");
 	c1->Update();
+
+
 	theApp->Run();
+	std::cout << "After" << std::endl;
 
 }
