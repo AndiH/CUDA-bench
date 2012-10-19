@@ -27,6 +27,7 @@
 #include "TGraphErrors.h"
 #include "TMultiGraph.h"
 #include "TLegend.h"
+#include "TPaveText.h"
 #include "TMath.h"
 
 namespace my {
@@ -222,8 +223,15 @@ int main(int argc, char** argv) {
 	
 // 	gPad->SetLogy();
 	
-	TLegend * leg = c1->BuildLegend(0.1,0.75,0.42,0.9);
+	TLegend * leg = c1->BuildLegend(0.1,0.75,0.35,0.9);
 	leg->SetFillColor(kWhite);
+	TPaveText * formulaLeg = new TPaveText(0.35,0.75,0.45,0.9,"blNDC");
+	formulaLeg->AddText("#sum^{N}_{i} = x^{2}");
+	formulaLeg->SetFillColor(kWhite);
+	formulaLeg->SetBorderSize(1);
+	formulaLeg->SetTextSize(formulaLeg->GetTextSize()*0.7);
+
+	std::cout << "Text size: " << formulaLeg->GetTextSize() << std::endl;
 
 	bool doFit = true;
 	if (true == doFit) {
@@ -243,6 +251,7 @@ int main(int argc, char** argv) {
 // 	fCpu->Draw("SAME");
 // 	fGpuCompute->Draw("SAME");
 // 	fGpuCopy->Draw("SAME");
+	formulaLeg->Draw();
 	c1->Update();
 
 
